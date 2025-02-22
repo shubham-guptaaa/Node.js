@@ -1,155 +1,169 @@
-Simple Node.js Server
+# Simple Node.js Server
 
 This is a basic HTTP server built using Node.js that serves static files such as HTML, CSS, JavaScript, and images.
 
-Features
+## Features
 
-Serves static files from the project directory.
+- Serves static files from the project directory.
+- Supports multiple file types: .html, .css, .js, .png.
+- Handles 404 errors when files are not found.
+- Displays server errors for debugging.
 
-Supports multiple file types: .html, .css, .js, .png.
+## Prerequisites
 
-Handles 404 errors when files are not found.
+- Node.js installed on your system.
 
-Displays server errors for debugging.
-
-Prerequisites
-
-Node.js installed on your system.
-
-Installation
+## Installation
 
 Clone this repository or create a new project directory:
 
+```sh
 git clone <repository-url>
 cd <project-directory>
+```
 
 Ensure you have Node.js installed.
 
 No additional dependencies are required.
 
-Usage
+## Usage
 
-Save the provided server code as server.js.
+Save the provided server code as `server.js`.
 
 Run the server using:
 
+```sh
 node server.js
+```
 
 Open a web browser and visit:
 
+```
 http://localhost:3000/
+```
 
-File Structure
+## File Structure
 
+```
 /project-directory
 │── server.js        # Node.js server script
 │── index.html       # Default HTML file
 │── style.css        # CSS file (if any)
 │── script.js        # JavaScript file (if any)
 │── images/          # Directory for image files
+```
 
-Code Explanation
+## Code Explanation
 
-1. Importing Required Modules
+1. **Importing Required Modules**
 
-const http = require("http");
-const fs = require("fs");
-const path = require("path");
+    ```js
+    const http = require("http");
+    const fs = require("fs");
+    const path = require("path");
+    ```
 
-http: Handles HTTP requests and responses.
+    - `http`: Handles HTTP requests and responses.
+    - `fs`: Reads files from the file system.
+    - `path`: Manages file paths.
 
-fs: Reads files from the file system.
+2. **Defining the Port**
 
-path: Manages file paths.
+    ```js
+    const port = 3000;
+    ```
 
-2. Defining the Port
+    The server listens on port 3000.
 
-const port = 3000;
+3. **Creating the Server**
 
-The server listens on port 3000.
+    ```js
+    const server = http.createServer((req, res) => {
+    ```
 
-3. Creating the Server
+    - `http.createServer()`: Creates an HTTP server.
+    - Handles file requests based on the URL.
 
-const server = http.createServer((req, res) => {
+4. **Determining the File Path**
 
-http.createServer() creates an HTTP server.
+    ```js
+    const filePath = path.join(
+      __dirname,
+      req.url === "/" ? "index.html" : req.url
+    );
+    ```
 
-Handles file requests based on the URL.
+    - Serves `index.html` for the root URL (/).
+    - Serves requested files if available.
 
-4. Determining the File Path
+5. **Determining the MIME Type**
 
-const filePath = path.join(
-  __dirname,
-  req.url === "/" ? "index.html" : req.url
-);
+    ```js
+    const extName = path.extname(filePath).toLocaleLowerCase();
 
-Serves index.html for the root URL (/).
+    let mimeTypes = {
+      ".html": "text/html",
+      ".css": "text/css",
+      ".js": "text/javascript",
+      ".png": "image/png",
+    };
 
-Serves requested files if available.
+    const contentType = mimeTypes[extName] || "application/octet-stream";
+    ```
 
-5. Determining the MIME Type
+    - Maps file extensions to their correct MIME types.
 
-const extName = path.extname(filePath).toLocaleLowerCase();
+6. **Reading and Serving the File**
 
-let mimeTypes = {
-  ".html": "text/html",
-  ".css": "text/css",
-  ".js": "text/javascript",
-  ".png": "image/png",
-};
+    ```js
+    fs.readFile(filePath, (err, content) => {
+    ```
 
-const contentType = mimeTypes[extName] || "application/octet-stream";
+    - Reads the requested file asynchronously.
 
-Maps file extensions to their correct MIME types.
+7. **Handling Errors**
 
-6. Reading and Serving the File
+    ```js
+    if (err) {
+      if (err.code === "ENOENT") {
+        res.writeHead(404, { "Content-Type": "text/html" });
+        res.end("404: File not found");
+      } else {
+        res.writeHead(500);
+        res.end(`Server Error: ${err.code}`);
+      }
+    ```
 
-fs.readFile(filePath, (err, content) => {
+    - Returns a 404 error for missing files.
+    - Returns a 500 error for other issues.
 
-Reads the requested file asynchronously.
+8. **Serving the File**
 
-7. Handling Errors
+    ```js
+    } else {
+      res.writeHead(200, { "Content-Type": contentType });
+      res.end(content, "utf8");
+    }
+    ```
 
-if (err) {
-  if (err.code === "ENOENT") {
-    res.writeHead(404, { "Content-Type": "text/html" });
-    res.end("404: File not found");
-  } else {
-    res.writeHead(500);
-    res.end(`Server Error: ${err.code}`);
-  }
-}
+    - Sends a 200 OK response and serves the requested file.
 
-Returns a 404 error for missing files.
+9. **Listening for Requests**
 
-Returns a 500 error for other issues.
+    ```js
+    server.listen(port, () => {
+      console.log(`Server is listening on port ${port}`);
+    });
+    ```
 
-8. Serving the File
+    - Starts the server and listens on port 3000.
 
-} else {
-  res.writeHead(200, { "Content-Type": contentType });
-  res.end(content, "utf8");
-}
+## Improvements & Next Steps
 
-Sends a 200 OK response and serves the requested file.
+- Add support for more file types (e.g., .jpg, .svg, .json).
+- Implement a better 404 page.
+- Use Express.js for easier routing and middleware support.
 
-9. Listening for Requests
-
-server.listen(port, () => {
-  console.log(`Server is listening on port ${port}`);
-});
-
-Starts the server and listens on port 3000.
-
-Improvements & Next Steps
-
-Add support for more file types (e.g., .jpg, .svg, .json).
-
-Implement a better 404 page.
-
-Use Express.js for easier routing and middleware support.
-
-License
+## License
 
 This project is open-source and free to use.
-
